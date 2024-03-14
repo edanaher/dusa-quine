@@ -1,0 +1,92 @@
+# Quine attempt
+
+#builtin STRING_CONCAT concat.
+
+# body "hello there".
+
+# quine (concat "quine '' " x) :- body x.
+
+#builtin INT_PLUS plus
+#builtin INT_MINUS minus
+#builtin NAT_SUCC s
+
+# leftArg is {5, 3, 1}.
+# rightArg is {3, 2, 1}.
+
+# sum is (plus X Y) :- leftArg is X, rightArg is Y.
+
+baseBits is 2.
+numBits is 7.
+
+num1 B :- numBits is B.
+num1 (minus N 1) :- num1 N, N != 0.
+
+# mul1 0 N is 0 :- num1 N.
+# mul1 (plus N 1) M is (plus NxM M) :- mul1 N M is NxM, num1 (plus N 1), num1 M.
+
+exp1 0 is 1.
+exp1 (plus N 1) is (plus Half Half) :- num1 (plus N 1), exp1 N is Half.
+
+base is Base :- exp1 baseBits is Base.
+singleWord (minus B 1) :- base is B.
+singleWord (minus N 1) :- singleWord N, N != 0.
+
+
+num MaxInt :- exp1 B is MaxInt, numBits is B.
+num (minus N 1) :- num N, N != 0.
+
+shiftLeft 0 is 0.
+shiftLeft (plus N 1) is (plus Prev base) :- shiftLeft N is Prev, num (plus Prev base).
+
+shiftRightExtra N (minus B 1) is M :- shiftLeft M is N, base is B.
+shiftRightExtra N (minus X 1) is M :- num N, shiftRightExtra (minus N 1) X is M, X != 0.
+
+shiftRight N is M :- shiftRightExtra N _ is M.
+# shiftRight N is {M?} :- num N, shiftRight (minus N 1) is M.
+
+lastWord N is (minus N Subtractand) :- shiftRight N is Quotient, shiftLeft Quotient is Subtractand.
+
+shiftLeft1 0 is 0.
+shiftLeft1 (plus N 1) is (plus Prev (plus base base)) :- shiftLeft1 N is Prev, num (plus Prev (plus base base)).
+
+shiftRightExtra1 N (minus B 1) is M :- shiftLeft1 M is N, base is B.
+shiftRightExtra1 N (minus X 1) is M :- num N, shiftRightExtra1 (minus N 1) X is M, X != 0.
+
+shiftRight1 N is M :- shiftRightExtra1 N _ is M.
+
+lastWord1 N is (minus N Subtractand) :- shiftRight1 N is Quotient, shiftLeft1 Quotient is Subtractand.
+
+ord 0 is "a".
+ord 1 is "b".
+ord 2 is "c".
+ord 3 is "d".
+
+ordEscaped 0 is "a".
+ordEscaped 1 is "b".
+ordEscaped 2 is "c".
+ordEscaped 3 is "DD".
+
+ numToString (plus B N) is C :- ord N is C, base is B.
+numToString N is (concat Rest C) :-
+  shiftRight N is Quotient, numToString Quotient is Rest, lastWord N is W, ord W is C,
+  lastWord1 N is L1, L1 != N.
+
+# numToStringEscaped (plus B N) is C :- ordEscaped N is C, base is B.
+# numToStringEscaped N is {(concat Rest C)?} :- shiftRight N is Quotient, numToStringEscaped Quotient is Rest, lastWord N is W, ordEscaped W is C, N != W.
+
+
+
+# num2 N :- mul1 _ _ is N.
+# num2 (minus N 1) :- num2 N, N != 0.
+
+# mul2 0 N is 0 :- num2 N.
+# mul2 (plus N 1) M is (plus NxM M) :- mul2 N M is NxM, num2 (plus N 1), num2 M.
+
+# byte N :- mul2 _ _ is N.
+# byte (minus N 1) :- byte N, N != 0.
+
+
+# Huh?
+# nil1.
+# cons1 "h" nil1.
+# cons2 "x" (con "h" nil1).

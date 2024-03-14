@@ -1,0 +1,66 @@
+#builtin INT_PLUS plus
+#builtin INT_MINUS minus
+#builtin STRING_CONCAT concat
+
+arrayLen is 1723.
+
+intToString 0 is "0".
+intToString 1 is "1".
+intToString 2 is "2".
+intToString 3 is "3".
+intToString 4 is "4".
+intToString 5 is "5".
+intToString 6 is "6".
+intToString 7 is "7".
+intToString 8 is "8".
+intToString 9 is "9".
+
+mul10All N is (plus N (plus N (plus N (plus N (plus N (plus N (plus N (plus N (plus N N))))))))) :- array N is _.
+mul10 N is M :- array N is _, mul10All N is M.
+
+div10Extra N 9 is M :- mul10 M is N.
+div10Extra (plus N 1) (minus X 1) is M :- div10Extra N X is M, X != 0.
+
+div10 N is M :- div10Extra N _ is M, array N is _.
+mod10 N is (minus N R10) :- div10 N is R, mul10 R is R10.
+
+intToString N is (concat DS D) :-
+ div10 N is R, R != 0,
+ mod10 N is N1, intToString N1 is D,
+ intToString R is DS.
+
+alldecls L is " " :- arrayLen is L.
+
+alldecls (minus N 1) is
+ (concat "array "
+ (concat NStr
+ (concat " is \""
+ (concat D "\".\n"))) DS) :-
+ array N is D, alldecls N is DS,
+ intToString N is NStr, D != "\"", D != "\\", D != "\n".
+
+alldecls (minus N 1) is
+ (concat "array "
+ (concat NStr
+ (concat " is \"\\\"\".\n" )) DS) :-
+ array N is D, alldecls N is DS,
+ intToString N is NStr, D == "\"".
+
+alldecls (minus N 1) is
+ (concat "array "
+ (concat NStr
+ (concat " is \"\\\\\".\n" )) DS) :-
+ array N is D, alldecls N is DS,
+ intToString N is NStr, D == "\\".
+
+alldecls (minus N 1) is
+ (concat "array "
+ (concat NStr
+ (concat " is \"\\n\".\n" )) DS) :-
+ array N is D, alldecls N is DS,
+ intToString N is NStr, D == "\n".
+
+decoded L is " " :- arrayLen is L.
+ decoded (minus N 1) is (concat C CS) :- array N is C, decoded N is CS.
+
+aaquine (concat Decls Decoded) :- alldecls -1 is Decls, decoded -1 is Decoded.
